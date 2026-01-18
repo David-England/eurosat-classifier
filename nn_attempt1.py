@@ -2,7 +2,7 @@ import torch
 import torchvision
 from torch import nn, optim
 from torch.nn import functional as f
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 
 class EuroNN(nn.Module):
@@ -23,18 +23,16 @@ class EuroNN(nn.Module):
 torch.manual_seed(4)
 
 # Load data
-dset_train = torchvision.datasets.EuroSAT(
+dset = torchvision.datasets.EuroSAT(
     "/eurosatd", download=True, transform=torchvision.transforms.ToTensor()
 )
-# dset_test = torchvision.datasets.EuroSAT(
-#     "/eurosatd", download=True, train=False, transform=torchvision.transforms.ToTensor()
-# )
+dset_train, dset_test = random_split(dset, [0.8, 0.2])
 
-loader_train = DataLoader(dset_train, batch_size=4, shuffle=True)
-# loader_test = DataLoader(dset_test, batch_size=4, shuffle=True)
+loader_train = DataLoader(dset_train, batch_size=15, shuffle=True)
+loader_test = DataLoader(dset_test, batch_size=15, shuffle=True)
 
 size_train = len(loader_train)
-# size_test = len(loader_test)
+size_test = len(loader_test)
 
 # Create NN
 net = EuroNN()
@@ -61,7 +59,7 @@ print("EVALUATING")
 correct, total = 0, 0
 
 with torch.no_grad():
-    for batch in loader_train:
+    for batch in loader_test:
         x, t = batch
 
         y = net(x)
