@@ -1,23 +1,26 @@
+import nets
 import torch
 import torchvision
 from torch import nn, optim
-from torch.nn import functional as f
 from torch.utils.data import DataLoader, random_split
 
 
-class EuroNN(nn.Module):
-    def __init__(self):
-        super().__init__()
+def train(
+    net: nets.EuroNN, loss_fn: nn.Module, optimiser: optim.Optimizer, loader: DataLoader
+):
+    for i, batch in enumerate(loader):
+        x, t = batch
 
-        self.conv = nn.Conv2d(3, 1, 5)
-        self.linear = nn.Linear(60 * 60, 10)
+        optimiser.zero_grad()
 
-    def forward(self, x):
-        a1 = self.conv(x)
-        z1 = f.relu(a1)
-        a2 = self.linear(z1.reshape(-1, 60 * 60))
-        z2 = f.relu(a2)
-        return z2
+        y = net(x)
+
+        loss = loss_fn(y, t)
+        loss.backward()
+        optimiser.step()
+
+        if i % 1000 == 0:
+            print(f"PROGRESS: {i+1}/{size_train}")
 
 
 torch.manual_seed(4)
@@ -35,24 +38,10 @@ size_train = len(loader_train)
 size_test = len(loader_test)
 
 # Create NN
-net = EuroNN()
-loss_fn = nn.CrossEntropyLoss()
-optimiser = optim.SGD(net.parameters())
+net = nets.EuroNN()
 
 # Train
-for i, batch in enumerate(loader_train):
-    x, t = batch
-
-    optimiser.zero_grad()
-
-    y = net(x)
-
-    loss = loss_fn(y, t)
-    loss.backward()
-    optimiser.step()
-
-    if i % 1000 == 0:
-        print(f"PROGRESS: {i+1}/{size_train}")
+train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train)
 
 # Test
 print("EVALUATING")
