@@ -23,9 +23,24 @@ def train(
             print(f"PROGRESS: {i+1}/{size_train}")
 
 
+def test(net: nets.EuroNN, loader: DataLoader):
+    print("EVALUATING")
+    correct, total = 0, 0
+
+    with torch.no_grad():
+        for batch in loader:
+            x, t = batch
+
+            y = net(x)
+            _, preds = torch.max(y, 1)
+            correct += (preds == t).sum().item()
+            total += preds.shape[0]
+
+    print(f"ACCURACY: {correct}/{total}; {correct/total*100.:.2f}%")
+
+
 torch.manual_seed(4)
 
-# Load data
 dset = torchvision.datasets.EuroSAT(
     "/eurosatd", download=True, transform=torchvision.transforms.ToTensor()
 )
@@ -37,23 +52,6 @@ loader_test = DataLoader(dset_test, batch_size=15, shuffle=True)
 size_train = len(loader_train)
 size_test = len(loader_test)
 
-# Create NN
 net = nets.EuroNN()
-
-# Train
 train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train)
-
-# Test
-print("EVALUATING")
-correct, total = 0, 0
-
-with torch.no_grad():
-    for batch in loader_test:
-        x, t = batch
-
-        y = net(x)
-        _, preds = torch.max(y, 1)
-        correct += (preds == t).sum().item()
-        total += preds.shape[0]
-
-print(f"ACCURACY: {correct}/{total}; {correct/total*100.:.2f}%")
+test(net, loader_test)
