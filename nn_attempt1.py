@@ -53,5 +53,7 @@ size_train = len(loader_train)
 size_test = len(loader_test)
 
 net = nets.EuroNN()
+print(net)
+
 train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train)
 test(net, loader_test)
