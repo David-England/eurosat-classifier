@@ -2,6 +2,7 @@ from torch import nn
 from torch.nn import functional as f
 
 IMG_WIDTH, IMG_HEIGHT = 64, 64
+NUM_CONV_FEATURES = 5
 KERNEL_SIZE = 5
 
 
@@ -12,8 +13,10 @@ class EuroNN(nn.Module):
         super().__init__()
 
         self.__setup_conv_layers(num_conv_layers)
-        self.__linear_input_size = (IMG_WIDTH - num_conv_layers * (KERNEL_SIZE - 1)) * (
-            IMG_HEIGHT - num_conv_layers * (KERNEL_SIZE - 1)
+        self.__linear_input_size = (
+            (IMG_WIDTH - num_conv_layers * (KERNEL_SIZE - 1))
+            * (IMG_HEIGHT - num_conv_layers * (KERNEL_SIZE - 1))
+            * NUM_CONV_FEATURES
         )
         self.linear = nn.Linear(self.__linear_input_size, 10)
 
@@ -35,7 +38,8 @@ class EuroNN(nn.Module):
             )
 
     def __setup_conv_layers(self, num_conv_layers: int):
-        convs = [nn.Conv2d(3, 1, KERNEL_SIZE)] + [
-            nn.Conv2d(1, 1, KERNEL_SIZE) for _ in range(num_conv_layers - 1)
+        convs = [nn.Conv2d(3, NUM_CONV_FEATURES, KERNEL_SIZE)] + [
+            nn.Conv2d(NUM_CONV_FEATURES, NUM_CONV_FEATURES, KERNEL_SIZE)
+            for _ in range(num_conv_layers - 1)
         ]
         self.convs = nn.ModuleList(convs)
