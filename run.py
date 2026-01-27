@@ -5,6 +5,26 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, random_split
 
 
+def run():
+    torch.manual_seed(4)
+
+    dvc = get_device()
+
+    dset = torchvision.datasets.EuroSAT(
+        "/eurosatd", download=True, transform=torchvision.transforms.ToTensor()
+    )
+    dset_train, dset_test = random_split(dset, [0.8, 0.2])
+
+    loader_train = DataLoader(dset_train, batch_size=15, shuffle=True)
+    loader_test = DataLoader(dset_test, batch_size=15, shuffle=True)
+
+    net = nets.EuroNN().to(dvc)
+    print(net)
+
+    train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train, dvc)
+    test(net, loader_test, dvc)
+
+
 def train(
     net: nets.EuroNN,
     loss_fn: nn.Module,
@@ -12,6 +32,8 @@ def train(
     loader: DataLoader,
     dvc: torch.device,
 ):
+    length = len(loader)
+
     for i, batch in enumerate(loader):
         x, t = [g.to(dvc) for g in batch]
 
@@ -24,7 +46,7 @@ def train(
         optimiser.step()
 
         if i % 1000 == 0:
-            print(f"PROGRESS: {i+1}/{size_train}")
+            print(f"PROGRESS: {i+1}/{length}")
 
 
 def test(net: nets.EuroNN, loader: DataLoader, dvc: torch.device):
@@ -50,23 +72,4 @@ def get_device():
         return torch.device("cpu")
 
 
-torch.manual_seed(4)
-
-dvc = get_device()
-
-dset = torchvision.datasets.EuroSAT(
-    "/eurosatd", download=True, transform=torchvision.transforms.ToTensor()
-)
-dset_train, dset_test = random_split(dset, [0.8, 0.2])
-
-loader_train = DataLoader(dset_train, batch_size=15, shuffle=True)
-loader_test = DataLoader(dset_test, batch_size=15, shuffle=True)
-
-size_train = len(loader_train)
-size_test = len(loader_test)
-
-net = nets.EuroNN().to(dvc)
-print(net)
-
-train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train, dvc)
-test(net, loader_test, dvc)
+run()
