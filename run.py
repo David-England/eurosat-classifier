@@ -1,3 +1,4 @@
+import json
 import nets
 import torch
 import torchvision
@@ -72,6 +73,6 @@ def get_device():
         return torch.device("cpu")
 
 
-defaults = {"num_conv_layers": 2}
-
-run(defaults)
+with open("default_settings.json", "r") as f:
+    defaults = json.load(f)
+    run(defaults)
