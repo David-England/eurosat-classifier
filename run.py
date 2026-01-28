@@ -5,7 +5,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, random_split
 
 
-def run():
+def run(settings: dict):
     torch.manual_seed(4)
 
     dvc = get_device()
@@ -18,7 +18,7 @@ def run():
     loader_train = DataLoader(dset_train, batch_size=15, shuffle=True)
     loader_test = DataLoader(dset_test, batch_size=15, shuffle=True)
 
-    net = nets.EuroNN().to(dvc)
+    net = nets.EuroNN(settings["num_conv_layers"]).to(dvc)
     print(net)
 
     train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train, dvc)
@@ -72,4 +72,6 @@ def get_device():
         return torch.device("cpu")
 
 
-run()
+defaults = {"num_conv_layers": 2}
+
+run(defaults)
