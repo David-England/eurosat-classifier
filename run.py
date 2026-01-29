@@ -16,10 +16,12 @@ def run(settings: dict):
     )
     dset_train, dset_test = random_split(dset, [0.8, 0.2])
 
-    loader_train = DataLoader(dset_train, batch_size=15, shuffle=True)
-    loader_test = DataLoader(dset_test, batch_size=15, shuffle=True)
+    loader_train = DataLoader(
+        dset_train, batch_size=settings["batch_size"], shuffle=True
+    )
+    loader_test = DataLoader(dset_test, batch_size=settings["batch_size"], shuffle=True)
 
-    net = nets.EuroNN(settings["num_conv_layers"]).to(dvc)
+    net = nets.EuroNN(settings).to(dvc)
     print(net)
 
     train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train, dvc)
