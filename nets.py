@@ -34,10 +34,14 @@ class EuroNN(nn.Module):
         return z2
 
     def __validate(self, settings: dict):
-        if settings["num_conv_layers"] < 1:
-            raise ValueError(
-                f"number of conv. layers must be >= 1, but was {settings["num_conv_layers"]}"
-            )
+        # Validate positive integer settings:
+        for k in ["num_conv_layers", "num_conv_features", "kernel_size"]:
+            if k not in settings:
+                raise ValueError(f"no setting {k}")
+            if not isinstance(settings[k], int) or settings[k] < 1:
+                raise ValueError(
+                    f"setting {k} must be an integer >= 1, but was {settings[k]}"
+                )
 
     def __setup_conv_layers(
         self, num_conv_layers: int, num_conv_features: int, kernel_size: int
