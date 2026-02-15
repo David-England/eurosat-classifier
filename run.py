@@ -1,4 +1,3 @@
-import json
 import nets
 import torch
 import torchvision
@@ -73,8 +72,3 @@ def get_device():
         return torch.accelerator.current_accelerator()
     else:
         return torch.device("cpu")
-
-
-with open("default_settings.json", "r") as f:
-    defaults = json.load(f)
-    run(defaults)
