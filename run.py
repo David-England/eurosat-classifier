@@ -23,7 +23,14 @@ def run(settings: dict):
     net = nets.EuroNN(settings).to(dvc)
     print(net)
 
-    train(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), loader_train, dvc)
+    train(
+        net,
+        nn.CrossEntropyLoss(),
+        optim.SGD(net.parameters()),
+        loader_train,
+        settings["epochs"],
+        dvc,
+    )
     test(net, loader_test, dvc)
 
 
@@ -32,23 +39,27 @@ def train(
     loss_fn: nn.Module,
     optimiser: optim.Optimizer,
     loader: DataLoader,
+    epochs: int,
     dvc: torch.device,
 ):
     length = len(loader)
 
-    for i, batch in enumerate(loader):
-        x, t = [g.to(dvc) for g in batch]
+    for epoch in range(epochs):
+        for i, batch in enumerate(loader):
+            x, t = [g.to(dvc) for g in batch]
 
-        optimiser.zero_grad()
+            optimiser.zero_grad()
 
-        y = net(x)
+            y = net(x)
 
-        loss = loss_fn(y, t)
-        loss.backward()
-        optimiser.step()
+            loss = loss_fn(y, t)
+            loss.backward()
+            optimiser.step()
 
-        if i % 1000 == 0:
-            print(f"PROGRESS: {i+1}/{length}")
+            batch_no = i + epoch * length
+
+            if batch_no % 1000 == 0:
+                print(f"PROGRESS: {batch_no + 1}/{epochs * length}")
 
 
 def test(net: nets.EuroNN, loader: DataLoader, dvc: torch.device):
