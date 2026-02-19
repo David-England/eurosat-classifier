@@ -23,38 +23,34 @@ def run(settings: dict):
     net = nets.EuroNN(settings).to(dvc)
     print(net)
 
-    train(
-        net,
-        nn.CrossEntropyLoss(),
-        optim.SGD(net.parameters()),
-        loader_train,
-        settings["epochs"],
-        dvc,
-    )
+    t1b = train_one_batch(net, nn.CrossEntropyLoss(), optim.SGD(net.parameters()), dvc)
+    train(t1b, loader_train, settings["epochs"])
     test(net, loader_test, dvc)
 
 
-def train(
-    net: nets.EuroNN,
-    loss_fn: nn.Module,
-    optimiser: optim.Optimizer,
-    loader: DataLoader,
-    epochs: int,
-    dvc: torch.device,
-):
+def train_one_batch(
+    net: nets.EuroNN, loss_fn: nn.Module, optimiser: optim.Optimizer, dvc: torch.device
+) -> function:
+    def closure(batch):
+        x, t = [g.to(dvc) for g in batch]
+
+        optimiser.zero_grad()
+
+        y = net(x)
+
+        loss = loss_fn(y, t)
+        loss.backward()
+        optimiser.step()
+
+    return closure
+
+
+def train(train_one_batch: function, loader: DataLoader, epochs: int):
     length = len(loader)
 
     for epoch in range(epochs):
         for i, batch in enumerate(loader):
-            x, t = [g.to(dvc) for g in batch]
-
-            optimiser.zero_grad()
-
-            y = net(x)
-
-            loss = loss_fn(y, t)
-            loss.backward()
-            optimiser.step()
+            train_one_batch(batch)
 
             batch_no = i + epoch * length
 
